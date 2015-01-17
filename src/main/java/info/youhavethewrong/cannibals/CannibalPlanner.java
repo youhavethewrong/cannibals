@@ -4,28 +4,35 @@ import java.util.*;
 
 public class CannibalPlanner {
 
-	/**
-	 * function treeSearch -> (problem, strategy)
-	 * fringe = new searchNode(problem.initialState)
-	 * loop
-	 *   if empty fringe then return failure;
-	 *   node = selectFrom(fringe, strategy)
-	 *   if problem.goalTest(node.state) then
-	 *     return pathTo(node)
-	 *   fringe = fringe + expand(problem, node)
-	 * 
-	 */
-	
 	public SearchNode treeSearch(Problem problem, Strategy strategy) {
 		List<SearchNode> fringe = problem.getInitialState();
-		
-		while(fringe != null && !fringe.isEmpty()) {
+
+		while (fringe != null && !fringe.isEmpty()) {
 			SearchNode node = strategy.selectNode(fringe);
-			if(problem.goalTest(node)) {
+			if (problem.goalTest(node)) {
 				return node;
 			}
-			fringe.addAll(problem.expand(node));
+			strategy.addExplored(node);
+			List<SearchNode> newf = problem.expand(node);
+			fringe.addAll(newf);
 		}
 		return null;
+	}
+
+	public void printSolution(SearchNode solutionNode) {
+		List<String> buffer = new LinkedList<String>();
+		buffer.add(solutionNode.getState().toString());
+		buffer.add(solutionNode.getAction().toString());
+
+		SearchNode parent = solutionNode.getParentNode();
+		while (parent != null) {
+			buffer.add(parent.getState().toString());
+			buffer.add((parent.getAction() == null) ? "" : parent.getAction().toString());
+			parent = parent.getParentNode();
+		}
+
+		for (int i = buffer.size() - 1; i > 0; i--) {
+			System.out.println(buffer.get(i));
+		}
 	}
 }

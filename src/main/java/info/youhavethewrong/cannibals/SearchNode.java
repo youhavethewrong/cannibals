@@ -1,6 +1,8 @@
 package info.youhavethewrong.cannibals;
 
-public class SearchNode {
+import java.lang.Comparable;
+
+public class SearchNode implements Comparable<SearchNode> {
 
 	private River state;
 	private SearchNode parentNode;
@@ -57,28 +59,13 @@ public class SearchNode {
 		if (getClass() != obj.getClass())
 			return false;
 		SearchNode other = (SearchNode) obj;
-		if (action != other.action)
-			return false;
-		if (parentNode == null) {
-			if (other.parentNode != null)
-				return false;
-		} else if (!parentNode.equals(other.parentNode))
-			return false;
-		if (pathCost == null) {
-			if (other.pathCost != null)
-				return false;
-		} else if (!pathCost.equals(other.pathCost))
-			return false;
+
 		if (state == null) {
 			if (other.state != null)
 				return false;
 		} else if (!state.equals(other.state))
 			return false;
-		if (treeDepth == null) {
-			if (other.treeDepth != null)
-				return false;
-		} else if (!treeDepth.equals(other.treeDepth))
-			return false;
+
 		return true;
 	}
 
@@ -87,4 +74,18 @@ public class SearchNode {
 		return "SearchNode [state=" + state + ", parentNode=" + parentNode + ", action=" + action + ", pathCost=" + pathCost
 				+ ", treeDepth=" + treeDepth + "]";
 	}
+
+    @Override
+    public int compareTo(SearchNode node) {
+        if(node == null) {
+            throw new NullPointerException();
+        }
+        if(this.equals(node)) {
+            return 0;
+        }
+        if(this.getPathCost() > node.getPathCost()) {
+            return 1;
+        }
+        return -1;
+    }
 }
