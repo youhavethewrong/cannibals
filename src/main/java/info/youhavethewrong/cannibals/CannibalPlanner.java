@@ -9,6 +9,9 @@ public class CannibalPlanner {
 
 		while (fringe != null && !fringe.isEmpty()) {
 			SearchNode node = strategy.selectNode(fringe);
+			if (node == null) {
+				return null;
+			}
 			if (problem.goalTest(node)) {
 				return node;
 			}
@@ -31,7 +34,7 @@ public class CannibalPlanner {
 			parent = parent.getParentNode();
 		}
 
-		for (int i = buffer.size() - 1; i > 0; i--) {
+		for (int i = buffer.size() - 1; i >= 0; i--) {
 			System.out.println(buffer.get(i));
 		}
 	}

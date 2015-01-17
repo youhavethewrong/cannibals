@@ -10,31 +10,35 @@ public class PlanTest {
 
 	@Test
 	public void shouldMoveAcrossRiver() {
-		RiverBank leftBank = new RiverBank(3, 3, true);
+		int cannibals = 3;
+		int missionaries = 3;
+
+		RiverBank leftBank = new RiverBank(missionaries, cannibals, true);
 		RiverBank rightBank = new RiverBank(0, 0, false);
 		River river = new River(leftBank, rightBank);
 
 		RiverBank leftGoal = new RiverBank(0, 0, false);
-		RiverBank rightGoal = new RiverBank(3, 3, true);
+		RiverBank rightGoal = new RiverBank(missionaries, cannibals, true);
 		River goalState = new River(leftGoal, rightGoal);
 
 		CannibalPlanner planner = new CannibalPlanner();
 
-		assertEquals(3, river.getLeftBank().getMissionaries().intValue());
-		assertEquals(3, river.getLeftBank().getCannibals().intValue());
+		assertEquals(missionaries, river.getLeftBank().getMissionaries().intValue());
+		assertEquals(cannibals, river.getLeftBank().getCannibals().intValue());
 		assertEquals(0, river.getRightBank().getMissionaries().intValue());
 		assertEquals(0, river.getRightBank().getCannibals().intValue());
 		assertEquals(false, river.getRightBank().hasBoat());
 		assertEquals(true, river.getLeftBank().hasBoat());
 
 		SearchNode goalNode = planner.treeSearch(new Problem(river, goalState), new Strategy(new TreeSet<SearchNode>()));
+		assertNotNull(goalNode);
 
 		River goalRiver = goalNode.getState();
 
 		assertEquals(0, goalRiver.getLeftBank().getMissionaries().intValue());
 		assertEquals(0, goalRiver.getLeftBank().getCannibals().intValue());
-		assertEquals(3, goalRiver.getRightBank().getMissionaries().intValue());
-		assertEquals(3, goalRiver.getRightBank().getCannibals().intValue());
+		assertEquals(missionaries, goalRiver.getRightBank().getMissionaries().intValue());
+		assertEquals(cannibals, goalRiver.getRightBank().getCannibals().intValue());
 		assertEquals(true, goalRiver.getRightBank().hasBoat());
 		assertEquals(false, goalRiver.getLeftBank().hasBoat());
 
