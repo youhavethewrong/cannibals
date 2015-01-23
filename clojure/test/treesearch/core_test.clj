@@ -26,28 +26,29 @@
     (is
      (= {:l {:m 0 :c 1 :b false} :r {:m 3 :c 2 :b true}}
         (let [strat (->Strategy fifo)]
-          (:state ((:function strat) tinyfringe))))))
+          (:state ((:function strat) tinyfringe)))))
+    (swap! explored conj {:r {:m 2 :c 2 :b true} :l {:m 1 :c 1 :b false}})
     (is
-     (= {:l {:m 1 :c 1 :b false} :r {:m 2 :c 2 :b true}}
+     (= {:l {:m 0 :c 1 :b false} :r {:m 3 :c 2 :b true}}
         (let [strat (->Strategy lifo)]
-          (:state ((:function strat) tinyfringe))))))
+          (:state ((:function strat) tinyfringe)))))))
 
 (deftest exerciseExpand
   (testing "should expand the available nodes from the initial state"
     (let [fringe (expand [] initial-node)]
       (is
-       (= 4
+       (= 3
           (count fringe))))
     (let [fringe (expand [] (first tinyfringe))]
       (is
-       (= 5
+       (= 4
           (count fringe))))))
 
-;; (deftest game
-;;   (testing "should plan the cannibals and missionaries problem"
-;;     (is
-;;      (= 11
-;;         (count (let [strat (->Strategy fifo)]
-;;                  (search-tree
-;;                   problem
-;;                   strat)))))))
+(deftest game
+  (testing "should plan the cannibals and missionaries problem"
+    (let [strat (->Strategy lifo)
+          solutionNode (search-tree problem strat)]
+      (println (apply str (:parentNode solutionNode))) 
+      (is
+       (= 11
+          (:pathCost solutionNode)))))) 
