@@ -37,10 +37,13 @@
          {:l {:m 1 :c 0}}))
 
 (def problem
-  (Problem. {:initial-state {:l {:m 3 :c 3 :b true}
-                             :r {:m 0 :c 0 :b false}}}
-            {:goal-state {:l {:m 0 :c 0 :b false}
-                          :r {:m 3 :c 3 :b true}}}))
+  (Problem. (->SearchNode {:l {:m 3 :c 3 :b true} :r {:m 0 :c 0 :b false}}
+                          nil
+                          nil
+                          0
+                          0)
+            {:l {:m 0 :c 0 :b false}
+             :r {:m 3 :c 3 :b true}}))
 
 (defn lifo [fringe]
   (last fringe))
@@ -49,49 +52,67 @@
   (first fringe))
 
 (defn goal-test [problem maybe-goal-state]
-  (== (:goal-state problem)
+  (= (:goal-state problem)
       maybe-goal-state))
 
 (defn apply-action [state action]
-  )
-
-(defn test-action [bank state motion]
-  (let [to bank
-        from (cond (= :l bank) :r :else :l)]
-    (and
-     (<= (+ (:m (to state))   (:m motion)) 3)
-     (<= (+ (:c (to state))   (:c motion)) 3)
-     (>  (- (:m (from state)) (:m motion)) 0)
-     (>  (- (:c (from state)) (:c motion)) 0)
-     (and
-      (> (+ (:m  (to state))   (:m motion)) 0)
-      (<= (+ (:c (from state)) (:c motion))
-          (+ (:m (to state)    (:m motion)))))))) 
+  (let [to (first (keys action))
+        from (if (= :r to) :l :r)]
+    (assoc {}
+      to {:m (+ (:m (get state to)) (:m (get action to)))
+          :c (+ (:c (get state to)) (:c (get action to)))
+          :b (not (:b (get state to)))}
+      from {:m (- (:m (get state from)) (:m (get action to)))
+            :c (- (:c (get state from)) (:c (get action to)))
+            :b (not (:b (get state from)))})))
 
 (defn valid-action? [action node]
-  (let [state (:state node)]
-    (test-action
-     (first (keys action))
-     state
-     (first (vals action)))))
-    
+  (let [new-state (apply-action (:state node) action)]
+    (and
+     (not= (first (vals action))
+           (first (vals (:action node))))
+     (or (and (:b (:r new-state))
+              (not (:b (:l new-state))))
+         (and (:b (:l new-state))
+              (not (:b (:r new-state)))))
+     (<= (:m (:r new-state)) 3)
+     (<= (:m (:l new-state)) 3)
+     (<= (:c (:r new-state)) 3)
+     (<= (:c (:l new-state)) 3)
+     (>= (:m (:r new-state)) 0)
+     (>= (:m (:l new-state)) 0)
+     (>= (:c (:r new-state)) 0)
+     (>= (:c (:l new-state)) 0)
+     (or (= 0 (:m (:r new-state)))
+         (>= (:m (:r new-state)) (:c (:r new-state))))
+     (or (= 0 (:m (:l new-state)))
+         (>= (:m (:l new-state)) (:c (:l new-state)))))))
+
 (defn expand [fringe node]
-  (conj
-   (map
-    #(SearchNode. (:state node) node % (inc (:pathCost node)) (inc (:treeDepth node)))
-    (filter
-     #(valid-action? % node)
-     actions))
-   fringe))
+  (flatten
+   (conj
+    (map
+     (fn [action]
+       (SearchNode. (apply-action (:state node) action)
+                    node action
+                    (inc (:pathCost node))
+                    (inc (:treeDepth node))))
+     (filter
+      #(valid-action? % node)
+      actions))
+    fringe)))
 
 (defn search-tree [problem strategy]
-  (loop [fringe (:initial-state problem)]
+  (loop [fringe (list (:initial-state problem))]
+    (println (str "hi " fringe))
+    (dorun (map #(println %) fringe))
     (if
         (or (nil? fringe)
             (empty? fringe))
-      nil
-      (let [node ((:fuction strategy) fringe)]
+      (println "What, me worry?")
+      (let [node ((get strategy :function)
+                  fringe)]
         (cond
          (nil? node) nil
-         (goal-test problem (:state node)) node
+         (goal-test problem (:state node)) (println (str "Found path! " node)) 
          :else (recur (expand fringe node)))))))

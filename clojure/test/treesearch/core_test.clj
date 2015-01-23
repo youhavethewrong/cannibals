@@ -32,18 +32,22 @@
         (let [strat (->Strategy lifo)]
           (:state ((:function strat) tinyfringe))))))
 
-;; (deftest exerciseExpand
-;;   (testing "should expand the available nodes from the initial state"
-;;     (let [fringe (expand [] initial-node)]
-;;       (is
-;;        (= 3
-;;           (count fringe))))))
-
+(deftest exerciseExpand
+  (testing "should expand the available nodes from the initial state"
+    (let [fringe (expand [] initial-node)]
+      (is
+       (= 4
+          (count fringe))))
+    (let [fringe (expand [] (first tinyfringe))]
+      (is
+       (= 5
+          (count fringe))))))
 
 ;; (deftest game
 ;;   (testing "should plan the cannibals and missionaries problem"
 ;;     (is
 ;;      (= 11
-;;         (count (search-tree
-;;                 problem
-;;                 strategy))))))
+;;         (count (let [strat (->Strategy fifo)]
+;;                  (search-tree
+;;                   problem
+;;                   strat)))))))
