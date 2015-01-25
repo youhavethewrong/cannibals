@@ -21,6 +21,11 @@
                 1
                 1)])
 
+(defn pretty-print [node]
+  (when (not (nil? node))
+    (pretty-print (:parentNode node))
+    (println (str "State :l " (:l (:state node)) " :r " (:r (:state node)) " via " (:action node) " at depth " (:treeDepth node)))))
+
 (deftest exerciseStrategy
   (testing "should exercise a few scenarios for picking nodes from the fringe"
     (is
@@ -41,14 +46,14 @@
           (count fringe))))
     (let [fringe (expand [] (first tinyfringe))]
       (is
-       (= 4
+       (= 3
           (count fringe))))))
 
 (deftest game
   (testing "should plan the cannibals and missionaries problem"
     (let [strat (->Strategy lifo)
           solutionNode (search-tree problem strat)]
-      (println (apply str (:parentNode solutionNode))) 
+      (pretty-print solutionNode)
       (is
        (= 11
           (:pathCost solutionNode)))))) 

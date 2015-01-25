@@ -52,28 +52,24 @@
     (assoc {}
       to {:m (+ (:m (get state to)) (:m (get action to)))
           :c (+ (:c (get state to)) (:c (get action to)))
-          :b (not (:b (get state to)))}
+          :b true}
       from {:m (- (:m (get state from)) (:m (get action to)))
             :c (- (:c (get state from)) (:c (get action to)))
-            :b (not (:b (get state from)))})))
+            :b false})))
 
 (defn valid-action? [action node]
   (let [new-state (apply-action (:state node) action)]
     (and
-     (not= (first (vals action))
-           (first (vals (:action node))))
-     (or (and (:b (:r new-state))
-              (not (:b (:l new-state))))
-         (and (:b (:l new-state))
-              (not (:b (:r new-state)))))
-     (<= (:m (:r new-state)) 3)
-     (<= (:m (:l new-state)) 3)
-     (<= (:c (:r new-state)) 3)
-     (<= (:c (:l new-state)) 3)
-     (>= (:m (:r new-state)) 0)
-     (>= (:m (:l new-state)) 0)
-     (>= (:c (:r new-state)) 0)
-     (>= (:c (:l new-state)) 0)
+     (not= (first (keys action))
+           (first (keys (:action node))))
+     (and (>= (:m (:r new-state)) 0)
+          (<= (:m (:r new-state)) 3))
+     (and (>= (:m (:l new-state)) 0)
+          (<= (:m (:l new-state)) 3))
+     (and (>= (:c (:r new-state)) 0)
+          (<= (:c (:r new-state)) 3))
+     (and (>= (:c (:l new-state)) 0)
+          (<= (:c (:l new-state)) 3))
      (or (= 0 (:m (:r new-state)))
          (>= (:m (:r new-state)) (:c (:r new-state))))
      (or (= 0 (:m (:l new-state)))
@@ -84,11 +80,12 @@
    (conj
     (map
      (fn [action]
-       (SearchNode. (apply-action (:state node) action)
-                    node
-                    action
-                    (inc (:pathCost node))
-                    (inc (:treeDepth node))))
+       (let [new (SearchNode. (apply-action (:state node) action)
+                              node
+                              action
+                              (inc (:pathCost node))
+                              (inc (:treeDepth node)))]
+         new))
      (filter
       #(valid-action? % node)
       actions))
