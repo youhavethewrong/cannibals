@@ -40,10 +40,27 @@
 
 (deftest exerciseExpand
   (testing "should expand the available nodes from the initial state"
-    (let [fringe (expand [] initial-node)]
+    (let [fringe (expand [] initial-node)
+          strat (->Strategy lifo)
+          step (expand
+                (filter #(not (contains? @explored (:state %))) fringe)
+                ((get strat :function) fringe))
+          twostep (expand
+                   (filter #(not (contains? @explored (:state %))) step)
+                   ((get strat :function) step))]
+      (println "Step")
+      (dorun (map #(println %) step))
+      (println "Twostep")
+      (dorun (map #(println %) twostep))
       (is
        (= 3
-          (count fringe))))
+          (count fringe)))
+      (is
+       (= 4
+          (count step)))
+      (is
+       (= 5
+          (count twostep))))    
     (let [fringe (expand [] (first tinyfringe))]
       (is
        (= 3

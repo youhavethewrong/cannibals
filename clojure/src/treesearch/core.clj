@@ -17,34 +17,27 @@
          {:l {:m 1 :c 0}}))
 
 (def problem
-  (Problem. (->SearchNode {:l {:m 3 :c 3 :b true} :r {:m 0 :c 0 :b false}}
-                          nil
-                          nil
-                          0
-                          0)
+  (Problem. (->SearchNode
+             {:l {:m 3 :c 3 :b true} :r {:m 0 :c 0 :b false}}
+             nil nil 0 0)
             {:l {:m 0 :c 0 :b false}
              :r {:m 3 :c 3 :b true}}))
 
 (def explored (atom #{}))
 
-(defn take-and-update [pick]
-  (println (str "Thinking about taking " pick))
-  (when (not (nil? pick))
-    
-    pick))
-
 (defn lifo [fringe]
-  (let [pick (last (filter #(not (contains? @explored (:state %))) fringe))]
-    (when (not (nil? pick))
-      (swap! explored conj (:state pick))
-      pick)))
+  (loop [pick (last fringe)]
+    (if (not (contains? @explored (:state pick)))
+      (do
+        (println (str "Taking " (:state pick)))
+        (swap! explored conj (:state pick)) pick)
+      (recur (butlast fringe)))))
 
 (defn fifo [fringe]
   (first fringe))
 
 (defn goal-test [problem maybe-goal-state]
-  (= (:goal-state problem)
-      maybe-goal-state))
+  (= (:goal-state problem) maybe-goal-state))
 
 (defn apply-action [state action]
   (let [to (first (keys action))
@@ -60,6 +53,9 @@
 (defn valid-action? [action node]
   (let [new-state (apply-action (:state node) action)]
     (and
+     (not (contains? @explored new-state))
+     (not= (:state (:parentNode node))
+           new-state)
      (not= (first (keys action))
            (first (keys (:action node))))
      (and (>= (:m (:r new-state)) 0)
@@ -76,20 +72,13 @@
          (>= (:m (:l new-state)) (:c (:l new-state)))))))
 
 (defn expand [fringe node]
-  (flatten
-   (conj
-    (map
-     (fn [action]
-       (let [new (SearchNode. (apply-action (:state node) action)
-                              node
-                              action
-                              (inc (:pathCost node))
-                              (inc (:treeDepth node)))]
-         new))
-     (filter
-      #(valid-action? % node)
-      actions))
-    fringe)))
+  (flatten (conj (map (fn [action]
+                        (SearchNode. (apply-action (:state node) action)
+                                     node
+                                     action
+                                     (inc (:pathCost node))
+                                     (inc (:treeDepth node))))
+                      (filter #(valid-action? % node) actions)) fringe)))
 
 (defn search-tree [problem strategy]
   (loop [fringe (list (:initial-state problem))]
@@ -101,4 +90,7 @@
         (cond
          (nil? node) nil
          (goal-test problem (:state node)) node
-         :else (recur (expand fringe node)))))))
+         :else (recur
+                (expand
+                 (filter #(not (contains? @explored (:state %))) fringe)
+                 node)))))))
