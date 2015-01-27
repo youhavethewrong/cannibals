@@ -24,15 +24,25 @@
 (defn pretty-print [node]
   (when (not (nil? node))
     (pretty-print (:parentNode node))
-    (println (str "State :l " (:l (:state node)) " :r " (:r (:state node)) " via " (:action node) " at depth " (:treeDepth node)))))
+    (println (str "State :l " (:l (:state node))
+                  " :r " (:r (:state node))
+                  " via " (:action node)
+                  " at depth " (:treeDepth node)))))
+
+(deftest exerciseApplyAction
+  (testing "should apply an action"
+    (is
+     (= {:l {:m 3 :c 2 :b false} :r {:m 0 :c 1 :b true}}
+        (:state (apply-action initial-node {:r {:m 0 :c 1}}))))))
 
 (deftest exerciseStrategy
   (testing "should exercise a few scenarios for picking nodes from the fringe"
+    (reset! explored #{})
     (is
      (= {:l {:m 0 :c 1 :b false} :r {:m 3 :c 2 :b true}}
         (let [strat (->Strategy fifo)]
           (:state ((:function strat) tinyfringe)))))
-    (swap! explored conj {:r {:m 2 :c 2 :b true} :l {:m 1 :c 1 :b false}})
+    (swap! explored conj (second tinyfringe))
     (is
      (= {:l {:m 0 :c 1 :b false} :r {:m 3 :c 2 :b true}}
         (let [strat (->Strategy lifo)]
@@ -40,35 +50,32 @@
 
 (deftest exerciseExpand
   (testing "should expand the available nodes from the initial state"
-    (let [fringe (expand [] initial-node)
+    (reset! explored #{})
+    (let [fringe (expand (list initial-node) initial-node)
           strat (->Strategy lifo)
-          step (expand
-                (filter #(not (contains? @explored (:state %))) fringe)
-                ((get strat :function) fringe))
-          twostep (expand
-                   (filter #(not (contains? @explored (:state %))) step)
-                   ((get strat :function) step))]
-      (println "Step")
-      (dorun (map #(println %) step))
-      (println "Twostep")
-      (dorun (map #(println %) twostep))
+          step (expand fringe ((get strat :function) fringe))
+          twostep (expand step ((get strat :function) step))]
       (is
-       (= 3
-          (count fringe)))
+       (not (nil? fringe)))
       (is
        (= 4
+          (count fringe)))
+      (is
+       (= 3
           (count step)))
       (is
-       (= 5
-          (count twostep))))    
-    (let [fringe (expand [] (first tinyfringe))]
+       (= 2
+          (count twostep))))
+    (reset! explored #{})
+    (let [fringe (expand (list (first tinyfringe)) (first tinyfringe))]
       (is
        (= 3
           (count fringe))))))
 
 (deftest game
   (testing "should plan the cannibals and missionaries problem"
-    (let [strat (->Strategy lifo)
+    (reset! explored #{})
+    (let [strat (->Strategy fifo)
           solutionNode (search-tree problem strat)]
       (pretty-print solutionNode)
       (is
