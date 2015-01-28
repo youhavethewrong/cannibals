@@ -42,9 +42,9 @@
      (= {:l {:m 0 :c 1 :b false} :r {:m 3 :c 2 :b true}}
         (let [strat (->Strategy fifo)]
           (:state ((:function strat) tinyfringe)))))
-    (swap! explored conj (second tinyfringe))
+    (reset! explored #{})
     (is
-     (= {:l {:m 0 :c 1 :b false} :r {:m 3 :c 2 :b true}}
+     (= {:r {:m 2, :c 2, :b true}, :l {:m 1, :c 1, :b false}}
         (let [strat (->Strategy lifo)]
           (:state ((:function strat) tinyfringe)))))))
 
