@@ -1,4 +1,4 @@
-(ns treesearch.core)
+(ns graphsearch.core)
 
 (defrecord Problem [initial-state goal-state])
 (defrecord Strategy [function])
@@ -88,7 +88,7 @@
         new-states (map (fn [valid-action] (apply-action node valid-action)) valid-actions)]
     (flatten (conj remaining-fringe new-states))))
 
-(defn search-tree [problem strategy]
+(defn search-graph [problem strategy]
   (loop [fringe (list (:initial-state problem))]
     (if
         (or (nil? fringe)

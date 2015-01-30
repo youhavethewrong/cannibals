@@ -1,6 +1,6 @@
-(ns treesearch.core-test
+(ns graphsearch.core-test
   (:require [clojure.test :refer :all]
-            [treesearch.core :refer :all]))
+            [graphsearch.core :refer :all]))
 
 (def initial-node
   (->SearchNode {:l {:m 3 :c 3 :b true} :r {:m 0 :c 0 :b false}}
@@ -76,7 +76,7 @@
   (testing "should plan the cannibals and missionaries problem"
     (reset! explored #{})
     (let [strat (->Strategy fifo)
-          solutionNode (search-tree problem strat)]
+          solutionNode (search-graph problem strat)]
       (pretty-print solutionNode)
       (is
        (= 11
